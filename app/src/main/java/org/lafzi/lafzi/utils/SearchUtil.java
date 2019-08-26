@@ -1,5 +1,7 @@
 package org.lafzi.lafzi.utils;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.lafzi.lafzi.helpers.database.dao.IndexDao;
@@ -19,8 +21,143 @@ import java.util.Map;
  */
 
 public class SearchUtil {
+    private static boolean suggestion = true;
 
+    static Map<Integer, FoundDocument> unfiltered = null;
     private SearchUtil(){}
+    public static Map<Integer, FoundDocument> searchLafziPlus(final String queryFinal,
+                                                              final boolean isVocal,
+                                                              final boolean orderedByScore,
+                                                              final boolean filtered,
+                                                              final double filterThreshold,
+                                                              final IndexDao indexDao) throws JSONException {
+
+        final Map<Integer, FoundDocument> matchedDocs = new HashMap<>();
+        final Map<Integer, FoundDocument> suggestionDocs = new HashMap<>();
+
+        // get trigram with frequency and positions
+        final Map<String, FreqAndPosition> trigrams = TrigramUtil.extractTrigramFrequencyAndPosition(queryFinal);
+        for (final Map.Entry<String, FreqAndPosition> trigram : trigrams.entrySet()) {
+            final String term = trigram.getKey();
+
+            // Index from SQLite
+            final Index index = indexDao.getIndexByTrigramTerm(term, isVocal);
+            final Iterator<String> indexIterator;
+            //Log.d(TAG, "trigramQuery: "+index.toString());
+            try {
+                indexIterator = index.getPost().keys();
+            } catch (Exception e) {
+                e.printStackTrace();
+                continue;
+            }
+            while (indexIterator.hasNext()) {
+
+                FoundDocument document = new FoundDocument();
+
+                final String ayatQuranIdStr = indexIterator.next();
+                final Integer ayatQuranId = Integer.parseInt(ayatQuranIdStr);
+                final JSONArray positions = index.getPost().getJSONArray(ayatQuranIdStr);
+                //Log.d(TAG, "JSONPostings: "+positions.toString());
+                if (matchedDocs.containsKey(ayatQuranId)) {
+
+                    document = matchedDocs.get(ayatQuranId);
+                    int matchedTrigrams = document.getMatchedTrigramsCount();
+                    final int queryTrigramFreq = trigram.getValue().getFreq();
+                    final int termFreq = positions.length();
+
+                    matchedTrigrams += (queryTrigramFreq < termFreq) ? queryTrigramFreq : termFreq;
+                    document.setMatchedTrigramsCount(matchedTrigrams);
+
+                } else {
+                    document.setMatchedTrigramsCount(1);
+                    document.setAyatQuranId(ayatQuranId);
+                }
+
+                final Map<String, List<Integer>> matchedTerms = document.getMatchedTerms() == null ?
+                        new HashMap<String, List<Integer>>() : document.getMatchedTerms();
+
+                matchedTerms.put(trigram.getKey(), GeneralUtil.readIndexPositions(positions));
+                document.setMatchedTerms(matchedTerms);
+
+                if(suggestion) {
+                    final List<Integer> flattenMatchedTerms = arrayValuesFlatten(document.getMatchedTerms());
+                    final List<Integer> lis = longestContiguousSubsequence(flattenMatchedTerms, 5);
+                    //Log.d(TAG, "flattenMatchedterms: " + flattenMatchedTerms.toString());
+                    //Log.d(TAG, "lisUtil: " + lis.toString());
+                    document.setMatchedTermsOrderScore(lis.size());
+                    document.setLis(lis);
+
+                    suggestionDocs.put(ayatQuranId, document);
+                }
+                matchedDocs.put(ayatQuranId, document);
+            }
+
+        }
+
+        // if filtered, only take docs match above threshold
+        final Map<Integer, FoundDocument> filteredDocs = new HashMap<>();
+        final double minScore = filterThreshold * (queryFinal.length() - 2);
+
+        // scoring based on match trigrams and contiguous
+        if (orderedByScore) {
+            for (Map.Entry<Integer, FoundDocument> entry : matchedDocs.entrySet()) {
+
+                final FoundDocument foundDocument = entry.getValue();
+
+                foundDocument.setMatchedTermsCountScore(
+                        foundDocument.getMatchedTrigramsCount()
+                );
+
+                final List<Integer> flattenMatchedTerms = arrayValuesFlatten(foundDocument.getMatchedTerms());
+                final List<Integer> lis = longestContiguousSubsequence(flattenMatchedTerms, 7);
+
+                foundDocument.setMatchedTermsOrderScore(lis.size());
+                foundDocument.setLis(lis);
+
+                final double contiguityScore = reciprocalDiffAverage(lis);
+                foundDocument.setMatchedTermsContiguityScore(contiguityScore);
+
+                foundDocument.setScore(
+                        foundDocument.getMatchedTermsOrderScore() * foundDocument.getMatchedTermsContiguityScore()
+                );
+
+                if (filtered && (foundDocument.getMatchedTrigramsCount() >= minScore)) {
+                    filteredDocs.put(entry.getKey(), foundDocument);
+                }
+            }
+        } else {
+            for (Map.Entry<Integer, FoundDocument> entry : matchedDocs.entrySet()) {
+                final FoundDocument foundDocument = entry.getValue();
+                foundDocument.setMatchedTermsCountScore(
+                        foundDocument.getMatchedTrigramsCount()
+                );
+
+                final List<Integer> flattenMatchedTerms = arrayValuesFlatten(foundDocument.getMatchedTerms());
+                final List<Integer> lis = longestContiguousSubsequence(flattenMatchedTerms, 4);
+
+
+                foundDocument.setMatchedTermsOrderScore(lis.size());
+                foundDocument.setLis(lis);
+                foundDocument.setScore(
+                        foundDocument.getMatchedTermsCountScore()
+                );
+
+                matchedDocs.put(entry.getKey(), foundDocument);
+
+                if (filtered && (foundDocument.getMatchedTrigramsCount() >= minScore)) {
+                    filteredDocs.put(entry.getKey(), foundDocument);
+                }
+            }
+        }
+
+        unfiltered = suggestionDocs;
+        if (filtered) return filteredDocs;
+        return matchedDocs;
+    }
+
+    public static Map<Integer, FoundDocument> getUnfilteredDocs() {
+        return unfiltered;
+    }
 
     public static Map<Integer, FoundDocument> search(final String queryFinal,
                                                      final boolean isVocal,

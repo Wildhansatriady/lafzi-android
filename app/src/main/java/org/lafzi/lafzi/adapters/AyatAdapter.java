@@ -33,10 +33,15 @@ public class AyatAdapter extends ArrayAdapter<AyatQuran> {
     private final AyatAdapterFilter mFilter;
 
     private List<AyatQuran> datas;
+    String suggestion;
 
     public AyatAdapter(Activity activity, LinkedList<AyatQuran> objects) {
         super(activity, 0, objects);
         this.mFilter = new AyatAdapterFilter(activity, this);
+    }
+
+    public void setSuggestion(String value){
+        suggestion = value;
     }
 
     @NonNull

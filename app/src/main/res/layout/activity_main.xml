@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-     android:layout_height="match_parent"
-    android:layout_width="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
     <com.github.clans.fab.FloatingActionButton
+        android:id="@+id/action_main"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
@@ -11,31 +13,30 @@
         android:layout_marginBottom="30dp"
         app:fab_colorNormal="@color/colorAccentTransparent"
         app:fab_colorPressed="@color/colorAccentTransparent"
-        app:srcCompat="@drawable/ic_mic_none_black_24dp"
-        android:id="@+id/action_main"/>
+        app:srcCompat="@drawable/ic_mic_none_black_24dp" />
 
     <RelativeLayout
         android:id="@+id/activity_main"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
+        android:background="@color/appBackground"
         android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:background="@color/appBackground">
+        android:focusableInTouchMode="true">
 
-        <include layout="@layout/main_toolbar_layout"
-            android:id="@+id/main_toolbar"/>
+        <include
+            android:id="@+id/main_toolbar"
+            layout="@layout/main_toolbar_layout" />
 
         <android.support.v7.widget.SearchView
             android:id="@+id/search"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/searchInputBackground"
             android:layout_below="@+id/main_toolbar"
+            android:background="@color/searchInputBackground"
             app:iconifiedByDefault="false"
-            app:queryHint="@string/search_placeholder"
             app:queryBackground="@color/searchInputBackground"
-            app:submitBackground="@color/searchInputBackground"
-            />
+            app:queryHint="@string/search_placeholder"
+            app:submitBackground="@color/searchInputBackground" />
 
         <ProgressBar
             android:id="@+id/searching_progress_bar"
@@ -43,47 +44,66 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:layout_centerVertical="true"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/result_counter"
+        <LinearLayout
+            android:id="@+id/ln_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="start"
-            android:paddingLeft="56dp"
-            android:paddingBottom="8dp"
-            android:visibility="gone"
-            android:layout_below="@+id/search"
-            android:textColor="@color/textAccent"
-            android:background="@color/searchInputBackground"/>
+            android:layout_below="@id/search"
+            android:background="@color/searchInputBackground"
+            android:orientation="vertical"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/result_counter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="start"
+                android:paddingLeft="56dp"
+                android:paddingBottom="8dp"
+                android:textColor="@color/textAccent"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/result_suggestion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="start|center_vertical"
+                android:paddingLeft="56dp"
+                android:text="Suggestion : "
+                android:textColor="@color/textAccent"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <ListView
             android:id="@+id/list_view"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
+            android:layout_below="@id/ln_container"
             android:layout_alignParentStart="true"
-            android:layout_below="@+id/result_counter"/>
+            android:layout_alignParentLeft="true" />
 
         <TextView
             android:id="@+id/empty_result"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:layout_centerInParent="true"
-            android:gravity="center"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:gravity="center"
             android:text="@string/empty_result"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
         <LinearLayout
             android:id="@+id/search_help"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:gravity="center"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:gravity="center"
             android:orientation="vertical"
             android:visibility="gone">
 
@@ -91,18 +111,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="@string/search_help_text"/>
+                android:text="@string/search_help_text" />
 
             <ViewFlipper
-                android:layout_marginTop="10dp"
                 android:id="@+id/search_examples"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:autoStart="true"
                 android:flipInterval="3000"
                 android:inAnimation="@android:anim/fade_in"
-                android:outAnimation="@android:anim/fade_out">
-            </ViewFlipper>
+                android:outAnimation="@android:anim/fade_out"></ViewFlipper>
 
         </LinearLayout>
 

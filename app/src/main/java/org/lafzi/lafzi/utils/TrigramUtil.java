@@ -2,6 +2,7 @@ package org.lafzi.lafzi.utils;
 
 import org.lafzi.lafzi.models.FreqAndPosition;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -43,6 +44,14 @@ public class TrigramUtil {
         }
 
         return results;
+    }
+
+
+    public static List<String> nGramsSorted(int n, String str) {
+        List<String> ngrams = new ArrayList<>();
+        for (int i = 0; i < str.length() - n + 1; i++)
+            ngrams.add(str.substring(i, i + n));
+        return ngrams;
     }
 
 }
