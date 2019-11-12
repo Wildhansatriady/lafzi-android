@@ -4,6 +4,7 @@
     <string name="more">More</string>
     <string name="pengaturan">Pengaturan</string>
     <string name="about">Tentang Lafzi</string>
+    <string name="tanda_waqaf">Pencarian ayat tanda berhenti</string>
     <string name="search_placeholder">Ketikkan lafadz yang dicari</string>
     <string name="surah">Surat</string>
     <string name="ayah">Ayat</string>
@@ -94,5 +95,7 @@
     <string name="about_title">Lafzi versi %1$s</string>
     <string name="no_internet_connection">Tidak ada koneksi internet</string>
     <string name="no_google_app">Google App tidak aktif atau belum terinstall</string>
+    <string name="lintas_ayat">Pencarian Lintas Ayat</string>
+    <string name="ayat_terpotong">Pencarian Ayat Terpotong</string>
 
 </resources>

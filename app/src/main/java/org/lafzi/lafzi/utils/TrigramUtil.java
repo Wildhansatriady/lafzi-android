@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class TrigramUtil {
 
-    public static Map<String, FreqAndPosition> extractTrigramFrequencyAndPosition(final String text){
+    public static Map<String, FreqAndPosition>  extractTrigramFrequencyAndPosition(final String text){
 
         final Map<String, FreqAndPosition> results = new HashMap<>();
 
